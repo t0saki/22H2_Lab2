@@ -4,11 +4,13 @@ function myJPEG(fn)
     origional_size = size(origional_I);
 
     % filling the edges with black to meet multiples of 8
+    % to keep the whole image in 8x8 blocks
     I = padarray(origional_I, [8 - mod(origional_size(1), 8), 8 - mod(origional_size(2), 8)], 'post');
     % imshow(I);
 
     % preparing to divide the image into 8x8 blocks
 
+    % get the size of blocks
     [m, n] = size(I);
     m = m / 8;
     n = n / 8;
@@ -19,7 +21,7 @@ function myJPEG(fn)
     for i = 1:m
 
         for j = 1:n
-            % get the block
+            % get the block, and store it in the array
             blocks(i, j, :, :) = I((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8);
         end
 
@@ -74,7 +76,7 @@ function myJPEG(fn)
     for i = 1:m
 
         for j = 1:n
-            % quantize
+            % quantize by dividing by the quantization matrix
             quantized_blocks_std(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qstd);
             quantized_blocks_low(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qlow);
             quantized_blocks_high(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qhigh);
@@ -101,7 +103,7 @@ function myJPEG(fn)
     for i = 1:m
 
         for j = 1:n
-            % dequantize
+            % dequantize by multiplying by the quantization matrix
             blocks_std(i, j, :, :) = squeeze(quantized_blocks_std(i, j, :, :)) .* Qstd;
             blocks_low(i, j, :, :) = squeeze(quantized_blocks_low(i, j, :, :)) .* Qlow;
             blocks_high(i, j, :, :) = squeeze(quantized_blocks_high(i, j, :, :)) .* Qhigh;
@@ -155,7 +157,7 @@ function myJPEG(fn)
     for i = 1:m
 
         for j = 1:n
-            % combine the blocks
+            % combine the blocks from the blocks array
             image_std((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_std(i, j, :, :));
             image_low((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_low(i, j, :, :));
             image_high((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_high(i, j, :, :));
@@ -164,19 +166,24 @@ function myJPEG(fn)
     end
 
     % crop the image to the original size
+    % the processed image is padded with blacks to fit the blocks
     image_std = image_std(1:origional_size(1), 1:origional_size(2));
     image_low = image_low(1:origional_size(1), 1:origional_size(2));
     image_high = image_high(1:origional_size(1), 1:origional_size(2));
 
     % show the images
+
+    % original image
+    % show image and its partial view
     figure(1);
     sgtitle('original image');
     subplot(1, 2, 1);
     imshow(I);
-    % show image and its partial view
     subplot(1, 2, 2);
+    % show the middle part of the image to see the details
     imshow(I(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75)));
 
+    % standard quantization
     figure(2);
     sgtitle('standard quantization image');
     subplot(1, 2, 1)
@@ -184,6 +191,7 @@ function myJPEG(fn)
     subplot(1, 2, 2)
     imshow(uint8(image_std(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75))));
 
+    % low quantization
     figure(3);
     sgtitle('low quantization image');
     subplot(1, 2, 1)
@@ -191,6 +199,7 @@ function myJPEG(fn)
     subplot(1, 2, 2)
     imshow(uint8(image_low(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75))));
 
+    % high quantization
     figure(4);
     sgtitle('high quantization image');
     subplot(1, 2, 1)
