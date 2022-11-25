@@ -1,10 +1,10 @@
 function myJPEG(fn)
-    I = imread(fn);
+    origional_I = imread(fn);
     % imshow(I);
-    origional_size = size(I);
+    origional_size = size(origional_I);
 
     % filling the edges with black to meet multiples of 8
-    I = padarray(I, [8 - mod(origional_size(1), 8), 8 - mod(origional_size(2), 8)], 'post');
+    I = padarray(origional_I, [8 - mod(origional_size(1), 8), 8 - mod(origional_size(2), 8)], 'post');
     % imshow(I);
 
     % preparing to divide the image into 8x8 blocks
@@ -54,5 +54,148 @@ function myJPEG(fn)
 
     % quantization
     Qstd = [16 11 10 16 24 40 51 61; 12 12 14 19 26 58 60 55; 14 13 16 24 40 57 69 56; 14 17 22 29 51 87 80 62; 18 22 37 56 68 109 103 77; 24 35 55 64 81 104 113 92; 49 64 78 87 103 121 120 101; 72 92 95 98 112 100 103 99];
+    factor_low = 0.42;
+    factor_high = 1/0.42;
 
+    % create quantization matrix
+    Qlow = round(Qstd * factor_low);
+    Qhigh = round(Qstd * factor_high);
+
+    % print the quantization matrix
+    % disp(Qlow);
+    % disp(Qhigh);
+
+    % quantize the DCT blocks
+    quantized_blocks_std = zeros(m, n, 8, 8);
+    quantized_blocks_low = zeros(m, n, 8, 8);
+    quantized_blocks_high = zeros(m, n, 8, 8);
+
+    for i = 1:m
+
+        for j = 1:n
+            % quantize
+            quantized_blocks_std(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qstd);
+            quantized_blocks_low(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qlow);
+            quantized_blocks_high(i, j, :, :) = round(squeeze(dct_blocks(i, j, :, :)) ./ Qhigh);
+        end
+
+    end
+
+    % show the first two quantized blocks
+    % disp('standard quantization');
+    % disp(squeeze(quantized_blocks_std(1, 1, :, :)));
+    % disp(squeeze(quantized_blocks_std(1, 2, :, :)));
+    % disp('low quantization');
+    % disp(squeeze(quantized_blocks_low(1, 1, :, :)));
+    % disp(squeeze(quantized_blocks_low(1, 2, :, :)));
+    % disp('high quantization');
+    % disp(squeeze(quantized_blocks_high(1, 1, :, :)));
+    % disp(squeeze(quantized_blocks_high(1, 2, :, :)));
+
+    % decompression
+    blocks_std = zeros(m, n, 8, 8);
+    blocks_low = zeros(m, n, 8, 8);
+    blocks_high = zeros(m, n, 8, 8);
+
+    for i = 1:m
+
+        for j = 1:n
+            % dequantize
+            blocks_std(i, j, :, :) = squeeze(quantized_blocks_std(i, j, :, :)) .* Qstd;
+            blocks_low(i, j, :, :) = squeeze(quantized_blocks_low(i, j, :, :)) .* Qlow;
+            blocks_high(i, j, :, :) = squeeze(quantized_blocks_high(i, j, :, :)) .* Qhigh;
+        end
+
+    end
+
+    % show the first two dequantized blocks
+    % disp('standard dequantization');
+    % disp(squeeze(blocks_std(1, 1, :, :)));
+    % disp(squeeze(blocks_std(1, 2, :, :)));
+    % disp('low dequantization');
+    % disp(squeeze(blocks_low(1, 1, :, :)));
+    % disp(squeeze(blocks_low(1, 2, :, :)));
+    % disp('high dequantization');
+    % disp(squeeze(blocks_high(1, 1, :, :)));
+    % disp(squeeze(blocks_high(1, 2, :, :)));
+
+    % apply inverse DCT to each block
+    idct_blocks_std = zeros(m, n, 8, 8);
+    idct_blocks_low = zeros(m, n, 8, 8);
+    idct_blocks_high = zeros(m, n, 8, 8);
+
+    for i = 1:m
+
+        for j = 1:n
+            % apply inverse DCT and add 128
+            idct_blocks_std(i, j, :, :) = round(idct2(squeeze(blocks_std(i, j, :, :)))) + 128;
+            idct_blocks_low(i, j, :, :) = round(idct2(squeeze(blocks_low(i, j, :, :)))) + 128;
+            idct_blocks_high(i, j, :, :) = round(idct2(squeeze(blocks_high(i, j, :, :)))) + 128;
+        end
+
+    end
+
+    % show the first two inverse DCT blocks
+    % disp('standard inverse DCT');
+    % disp(squeeze(idct_blocks_std(1, 1, :, :)));
+    % disp(squeeze(idct_blocks_std(1, 2, :, :)));
+    % disp('low inverse DCT');
+    % disp(squeeze(idct_blocks_low(1, 1, :, :)));
+    % disp(squeeze(idct_blocks_low(1, 2, :, :)));
+    % disp('high inverse DCT');
+    % disp(squeeze(idct_blocks_high(1, 1, :, :)));
+    % disp(squeeze(idct_blocks_high(1, 2, :, :)));
+
+    % reconstruct the image
+    image_std = zeros(m * 8, n * 8);
+    image_low = zeros(m * 8, n * 8);
+    image_high = zeros(m * 8, n * 8);
+
+    for i = 1:m
+
+        for j = 1:n
+            % combine the blocks
+            image_std((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_std(i, j, :, :));
+            image_low((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_low(i, j, :, :));
+            image_high((i - 1) * 8 + 1:i * 8, (j - 1) * 8 + 1:j * 8) = squeeze(idct_blocks_high(i, j, :, :));
+        end
+
+    end
+
+    % crop the image to the original size
+    image_std = image_std(1:origional_size(1), 1:origional_size(2));
+    image_low = image_low(1:origional_size(1), 1:origional_size(2));
+    image_high = image_high(1:origional_size(1), 1:origional_size(2));
+
+    % show the images
+    figure(1);
+    sgtitle('original image');
+    subplot(1, 2, 1);
+    imshow(I);
+    % show image and its partial view
+    subplot(1, 2, 2);
+    imshow(I(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75)));
+
+    figure(2);
+    sgtitle('standard quantization image');
+    subplot(1, 2, 1)
+    imshow(uint8(image_std));
+    subplot(1, 2, 2)
+    imshow(uint8(image_std(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75))));
+
+    figure(3);
+    sgtitle('low quantization image');
+    subplot(1, 2, 1)
+    imshow(uint8(image_low));
+    subplot(1, 2, 2)
+    imshow(uint8(image_low(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75))));
+
+    figure(4);
+    sgtitle('high quantization image');
+    subplot(1, 2, 1)
+    imshow(uint8(image_high));
+    subplot(1, 2, 2)
+    imshow(uint8(image_high(round(origional_size(1) * 0.25):round(origional_size(1) * 0.75), round(origional_size(2) * 0.25):round(origional_size(2) * 0.75))));
+
+    % the quality can be easily seen from the partial view of the images
 end
