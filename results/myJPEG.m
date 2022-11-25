@@ -1,7 +1,7 @@
 function myJPEG(fn)
     origional_I = imread(fn);
 
-    figure(0);
+    figure(5);
     % show the origional image
     imshow(origional_I);
     origional_size = size(origional_I);
