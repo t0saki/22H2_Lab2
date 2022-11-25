@@ -1,6 +1,6 @@
 function myJPEG(fn)
     origional_I = imread(fn);
-    imshow(I);
+    imshow(origional_I);
     origional_size = size(origional_I);
 
     % filling the edges with black to meet multiples of 8
