@@ -1,6 +1,6 @@
 function myJPEG(fn)
     origional_I = imread(fn);
-    % imshow(I);
+    imshow(I);
     origional_size = size(origional_I);
 
     % filling the edges with black to meet multiples of 8
@@ -28,15 +28,15 @@ function myJPEG(fn)
     end
 
     % show the first two block
-    % disp(squeeze(blocks(1, 1, :, :)));
-    % disp(squeeze(blocks(1, 2, :, :)));
+    disp(squeeze(blocks(1, 1, :, :)));
+    disp(squeeze(blocks(1, 2, :, :)));
 
     % level shift by subtracting 128 from each pixel
     blocks = blocks - 128;
 
     % show the first two levelled off blocks
-    % disp(squeeze(blocks(1, 1, :, :)));
-    % disp(squeeze(blocks(1, 2, :, :)));
+    disp(squeeze(blocks(1, 1, :, :)));
+    disp(squeeze(blocks(1, 2, :, :)));
 
     % apply DCT to each block
     dct_blocks = zeros(m, n, 8, 8);
@@ -51,8 +51,8 @@ function myJPEG(fn)
     end
 
     % show the first two DCT blocks
-    % disp(squeeze(dct_blocks(1, 1, :, :)));
-    % disp(squeeze(dct_blocks(1, 2, :, :)));
+    disp(squeeze(dct_blocks(1, 1, :, :)));
+    disp(squeeze(dct_blocks(1, 2, :, :)));
 
     % quantization
     Qstd = [16 11 10 16 24 40 51 61; 12 12 14 19 26 58 60 55; 14 13 16 24 40 57 69 56; 14 17 22 29 51 87 80 62; 18 22 37 56 68 109 103 77; 24 35 55 64 81 104 113 92; 49 64 78 87 103 121 120 101; 72 92 95 98 112 100 103 99];
@@ -65,8 +65,8 @@ function myJPEG(fn)
     Qhigh = round(Qstd * factor_high);
 
     % print the quantization matrix
-    % disp(Qlow);
-    % disp(Qhigh);
+    disp(Qlow);
+    disp(Qhigh);
 
     % quantize the DCT blocks
     quantized_blocks_std = zeros(m, n, 8, 8);
@@ -85,15 +85,15 @@ function myJPEG(fn)
     end
 
     % show the first two quantized blocks
-    % disp('standard quantization');
-    % disp(squeeze(quantized_blocks_std(1, 1, :, :)));
-    % disp(squeeze(quantized_blocks_std(1, 2, :, :)));
-    % disp('low quantization');
-    % disp(squeeze(quantized_blocks_low(1, 1, :, :)));
-    % disp(squeeze(quantized_blocks_low(1, 2, :, :)));
-    % disp('high quantization');
-    % disp(squeeze(quantized_blocks_high(1, 1, :, :)));
-    % disp(squeeze(quantized_blocks_high(1, 2, :, :)));
+    disp('standard quantization');
+    disp(squeeze(quantized_blocks_std(1, 1, :, :)));
+    disp(squeeze(quantized_blocks_std(1, 2, :, :)));
+    disp('low quantization');
+    disp(squeeze(quantized_blocks_low(1, 1, :, :)));
+    disp(squeeze(quantized_blocks_low(1, 2, :, :)));
+    disp('high quantization');
+    disp(squeeze(quantized_blocks_high(1, 1, :, :)));
+    disp(squeeze(quantized_blocks_high(1, 2, :, :)));
 
     % decompression
     blocks_std = zeros(m, n, 8, 8);
@@ -112,15 +112,15 @@ function myJPEG(fn)
     end
 
     % show the first two dequantized blocks
-    % disp('standard dequantization');
-    % disp(squeeze(blocks_std(1, 1, :, :)));
-    % disp(squeeze(blocks_std(1, 2, :, :)));
-    % disp('low dequantization');
-    % disp(squeeze(blocks_low(1, 1, :, :)));
-    % disp(squeeze(blocks_low(1, 2, :, :)));
-    % disp('high dequantization');
-    % disp(squeeze(blocks_high(1, 1, :, :)));
-    % disp(squeeze(blocks_high(1, 2, :, :)));
+    disp('standard dequantization');
+    disp(squeeze(blocks_std(1, 1, :, :)));
+    disp(squeeze(blocks_std(1, 2, :, :)));
+    disp('low dequantization');
+    disp(squeeze(blocks_low(1, 1, :, :)));
+    disp(squeeze(blocks_low(1, 2, :, :)));
+    disp('high dequantization');
+    disp(squeeze(blocks_high(1, 1, :, :)));
+    disp(squeeze(blocks_high(1, 2, :, :)));
 
     % apply inverse DCT to each block
     idct_blocks_std = zeros(m, n, 8, 8);
@@ -139,15 +139,15 @@ function myJPEG(fn)
     end
 
     % show the first two inverse DCT blocks
-    % disp('standard inverse DCT');
-    % disp(squeeze(idct_blocks_std(1, 1, :, :)));
-    % disp(squeeze(idct_blocks_std(1, 2, :, :)));
-    % disp('low inverse DCT');
-    % disp(squeeze(idct_blocks_low(1, 1, :, :)));
-    % disp(squeeze(idct_blocks_low(1, 2, :, :)));
-    % disp('high inverse DCT');
-    % disp(squeeze(idct_blocks_high(1, 1, :, :)));
-    % disp(squeeze(idct_blocks_high(1, 2, :, :)));
+    disp('standard inverse DCT');
+    disp(squeeze(idct_blocks_std(1, 1, :, :)));
+    disp(squeeze(idct_blocks_std(1, 2, :, :)));
+    disp('low inverse DCT');
+    disp(squeeze(idct_blocks_low(1, 1, :, :)));
+    disp(squeeze(idct_blocks_low(1, 2, :, :)));
+    disp('high inverse DCT');
+    disp(squeeze(idct_blocks_high(1, 1, :, :)));
+    disp(squeeze(idct_blocks_high(1, 2, :, :)));
 
     % reconstruct the image
     image_std = zeros(m * 8, n * 8);
